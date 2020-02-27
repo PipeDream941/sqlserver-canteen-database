@@ -1,1 +1,145 @@
+USE master
+IF EXISTS (SELECT name FROM master.dbo.sysdatabases
+WHERE name = 'canteen')
+DROP DATABASE canteen
+GO
 
+create database canteen on primary
+(name = canteen,
+filename='D:\canteen.mdf',
+size = 5mb,
+filegrowth=10%,
+maxsize=500mb),
+(name=canteen1,
+filename='D:\canteen1.ndf',
+size=5mb)
+log on
+(name=canteen2,
+filename='D:\canteen2.ldf')
+
+go
+
+use canteen
+
+CREATE TABLE 菜市场
+(菜市场编号  CHAR(20), 
+ 菜市场名称  char(30),          
+ 地址  char(30),
+ 联系人  char(10)constraint c1_4 not null,
+ 电话  CHAR(20)constraint c1_5 not null,
+ constraint c1_1 primary key(菜市场编号),
+ ); 
+ CREATE TABLE 材料
+(材料编号  CHAR(10)  , 
+ 材料名称  CHAR(10) ,          
+ 材料单价  float,
+ constraint c2_1 primary key(材料编号),
+ constraint c2_2 unique(材料名称),
+ constraint c2_3 check(材料单价>0),
+ ); 
+ CREATE TABLE 员工明细
+(员工编号  CHAR(10) , 
+ 姓名  CHAR(10),          
+ 性别  CHAR(10),
+ 身份证号  char(100)constraint c3_4 not null,
+ 联系电话  CHAR(100)constraint c3_5 not null,
+ constraint c3_1 primary key(员工编号),
+ constraint c3_2 check(性别 in ('男','女')),
+ constraint c3_3 unique(身份证号),
+ ); 
+ CREATE TABLE 员工
+(员工编号  CHAR(10)  , 
+ 工作类别  CHAR(10)constraint c4_2 not null,        
+ 基础工资  float,
+ constraint c4_1 primary key(员工编号),
+ constraint c4_3 check(基础工资>0),
+ constraint c4_24 check(工作类别 in ('采购','厨师','保洁')),
+ ); 
+  CREATE TABLE 顾客
+(教职工号  CHAR(10)  , 
+ 姓名  CHAR(10) constraint c5_3 not null, 
+ 性别  CHAR(2),
+ 入学年份 int,
+ constraint c5_1 primary key(教职工号),
+ constraint c5_2 check(性别 in ('男','女')),
+ ); 
+ CREATE TABLE 售卖
+(菜市场编号  CHAR(20)  , 
+ 材料编号  CHAR(10)  ,
+ FOREIGN key (菜市场编号) REFERENCES 菜市场(菜市场编号) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN key (材料编号) REFERENCES 材料(材料编号) ON DELETE CASCADE ON UPDATE CASCADE,
+ primary key(菜市场编号,材料编号)
+ ); 
+  CREATE TABLE 采购
+(采购编号 CHAR(10),
+ 菜市场编号  CHAR(20) , 
+ 材料编号  CHAR(10) ,          
+ 员工编号  CHAR(10) ,
+ FOREIGN key (菜市场编号) REFERENCES 菜市场(菜市场编号) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN key (材料编号) REFERENCES 材料(材料编号) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN key (员工编号) REFERENCES 员工(员工编号) ON DELETE CASCADE ON UPDATE CASCADE,
+ primary key(采购编号)
+ ); 
+ CREATE TABLE 采购明细
+(采购编号  CHAR(10),
+ 采购日期  CHAR(100),
+ 采购时间  CHAR(100),
+ 材料编号  CHAR(10) not null,  
+ 采购数量  int ,
+ FOREIGN key (材料编号) REFERENCES 材料(材料编号) ON DELETE CASCADE ON UPDATE CASCADE,
+ primary key(采购编号)
+ ); 
+ CREATE TABLE 仓库
+(材料编号  CHAR(10)  , 
+ 材料名称  CHAR(10)  , 
+ 材料数量  int  ,
+ FOREIGN key (材料编号) REFERENCES 材料(材料编号) ON DELETE CASCADE ON UPDATE CASCADE,
+ primary key(材料编号)
+ ); 
+ CREATE TABLE 店铺
+(店铺编号  CHAR(10)  , 
+ 店铺名称  CHAR(100)  , 
+ 店铺负责人编号  char(10)  ,
+ FOREIGN key (店铺负责人编号) REFERENCES 员工(员工编号) ON DELETE CASCADE ON UPDATE CASCADE,
+ primary key(店铺编号)
+ ); 
+ CREATE TABLE 厨师归属
+(员工编号  CHAR(10)  , 
+ 店铺编号  CHAR(10)  , 
+ FOREIGN key (员工编号) REFERENCES 员工(员工编号) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN key (店铺编号) REFERENCES 店铺(店铺编号) ON DELETE CASCADE ON UPDATE CASCADE,
+ primary key(店铺编号,员工编号)
+ ); 
+ CREATE TABLE 食品
+(食品编号  CHAR(10)  , 
+ 店铺编号  CHAR(10)  , 
+ 食品名称  CHAR(100)  ,
+ 食品价格  float,
+ FOREIGN key (店铺编号) REFERENCES 店铺(店铺编号) ON DELETE CASCADE ON UPDATE CASCADE,
+ primary key(食品编号)
+ )
+ CREATE TABLE 食品制作
+(食品编号  CHAR(10)  , 
+ 店铺编号  CHAR(10)  , 
+ 材料编号  CHAR(10),
+ 材料数量  int,
+ FOREIGN key (店铺编号) REFERENCES 店铺(店铺编号) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN key (食品编号) REFERENCES 食品(食品编号) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN key (材料编号) REFERENCES 材料(材料编号) ON DELETE CASCADE ON UPDATE CASCADE,
+ primary key(食品编号,店铺编号,材料编号)
+ )
+  CREATE TABLE 销售
+(销售编号  CHAR(10)  ,
+ 食品编号  CHAR(10)  , 
+ 教职工号  CHAR(10)  , 
+ 销售数量  int,
+ FOREIGN key (食品编号) REFERENCES 食品(食品编号) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN key (教职工号) REFERENCES 顾客(教职工号) ON DELETE CASCADE ON UPDATE CASCADE,
+ primary key(销售编号)
+ )
+  CREATE TABLE 销售明细
+(销售编号  CHAR(10)  ,
+ 销售时间  char(100)  , 
+ 销售日期  char(100)  , 
+ primary key(销售编号)
+ )
